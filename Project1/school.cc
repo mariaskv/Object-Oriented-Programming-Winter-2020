@@ -1,7 +1,9 @@
 #include <iostream>
 #include <cstring>
+#include <ctime>
 using namespace std;
 
+//values that define the possible position of the student
 #define OUT_OF_SCHOOL -1
 #define CORR 0
 #define YARD 1
@@ -17,7 +19,7 @@ class Student{
         int student_position; //current position
     public:
         Student(const char* init_name = "Name", const int c_init = 0, const int f_init = 0, int pos_init = OUT_OF_SCHOOL){
-            if(strcmp(init_name,"Name") != 0)
+            if(strcmp(init_name,"Name") != 0) //if student has been created by default do not print 
                 cout << "A new student has been created " << endl;
             name = new char[strlen(init_name) + 1];
             strcpy(name, init_name);
@@ -27,7 +29,7 @@ class Student{
         }
 
         ~Student(){
-            // cout << "A student is about to be destroyed" << endl;
+            cout << "A student is about to be destroyed" << endl;
             delete[] this->name;
         }
 
@@ -52,7 +54,7 @@ class Student{
         }
 
         void set(int i){
-            this->student_position = i;
+            this->student_position = i; //change students current position
         }
 };
 
@@ -73,7 +75,7 @@ class Teacher{
         }
 
         ~Teacher(){
-            // cout << "A teacher is about to be destroyed" << endl;
+            cout << "A teacher is about to be destroyed" << endl;
             delete[] this->name;
         }
 
@@ -101,14 +103,14 @@ class Teacher{
         }
 
         void place(void){
-            this->flag_teacher = true;
+            this->flag_teacher = true; //put the teacher in the classroom
         }
 };
 
 class Classroom{
     private:
         Teacher* teacher;
-        Student** students_classroom; 
+        Student** students_classroom; //array with pointers at the students of the classroom
         int size; //how many students are in the classroom
         int capacity; //max capacity of the classroom
     public:
@@ -117,29 +119,29 @@ class Classroom{
             cout << "A new class has been created!" << endl;
             this->students_classroom = new Student*[c_init];
             for(int i = 0; i < c_init; i++){
-                this->students_classroom[i] = NULL;
+                this->students_classroom[i] = NULL; //initialize the array to NULL
             }
             this->size = 0;
             this->capacity = c_init;
         }   
 
         ~Classroom(){
+            cout << "A classroom is about to be destroyed" << endl;
             delete this->teacher;
             this->teacher = NULL;
-            // cout << "A classroom is about to be destroyed" << endl;
             for(int i = 0; i < this->capacity; i++){
-                if(this->students_classroom[i] == NULL)
+                if(this->students_classroom[i] == NULL) //if there is no student at this position do not do nothing
                     continue;
-                delete this->students_classroom[i];
+                delete this->students_classroom[i]; //else delete this student and set this memory block to 0
                 this->students_classroom[i] = NULL;
             }
-                delete[] students_classroom;
+                delete[] students_classroom; 
         } 
 
         void set_teacher(Teacher& teacher){
-            delete this->teacher;
             if(&teacher == NULL)
                 return;
+            delete this->teacher;
             this->teacher = &teacher;
         }
 
@@ -157,47 +159,47 @@ class Classroom{
         }
 
         void place(void){
-            this->teacher->place();
+            this->teacher->place(); //call the place function for the tacher of the classroom
         }
 
         bool enter(Student& student){
             if(&student == NULL)
-                return false;
-            bool flag = this->teacher->get_flag();
-            if(this->size < this->capacity && flag == false){
+                return false; //if there is no student to enter return
+            bool flag = this->teacher->get_flag(); //check if there is a teacher in this classroom
+            if(this->size < this->capacity && flag == false){ //if there is no teacher at the classroom and there is space 
                 for(int i = 0; i < this->capacity; i++){
-                    if(this->students_classroom[i] == NULL){
-                        this->students_classroom[i] = &student;
-                        this->students_classroom[i]->set(CLASS);
-                        break;
-                    }
-                    if(this->students_classroom[i] == &student){
-                        cout << "Already here" << endl;
+                    if(this->students_classroom[i] == &student){ //if the student is already in the classroom return true
+                        cout << "This student is already here" << endl;
                         return true;
+                    }
+                    if(this->students_classroom[i] == NULL){ //put the student at the first empty position
+                        this->students_classroom[i] = &student; 
+                        this->students_classroom[i]->set(CLASS); //update its current position
+                        break;
                     }
                 }
                 this->size ++;
                 return true;                
             }
             else
-                cout << "There is no more space in this classroom or the teacher is already in" << endl;
+                cout << "There is no more space in this classroom or the teacher is already in" << endl; //else return false
                 return false;
         }
 
-        Student* exit(char* name){
-            Student* student;
+        bool exit(char* name){
             for(int i = 0; i < this->capacity; i++){
                 if(this->students_classroom[i] == NULL)
                     continue;
-                if(strcmp(name, this->students_classroom[i]->get_name()) == 0){
-                    student = this->students_classroom[i];
-                    this->students_classroom[i] = NULL;
+                if(strcmp(name, this->students_classroom[i]->get_name()) == 0){ //search by name to find a student
+                    this->students_classroom[i] = NULL; //if we find it, set that memory block to NULL
                     this->size --;
-                    return student;
+                    return true;
                 }
+                else
+                    continue;
             }
-            cout << "There is not such a student here" << endl;
-            return NULL;
+            cout << "There is not such a student here" << endl; //else return false
+            return false;
         }
 };
 
@@ -218,7 +220,7 @@ class Corr{
         }      
         
         ~Corr(){
-            // cout << "A corr is about to be destroyed" << endl;
+            cout << "A corr is about to be destroyed" << endl;
             for(int i = 0; i < this->capacity; i++){
                 if(this->students_corr[i] == NULL)
                     continue;
@@ -241,18 +243,19 @@ class Corr{
         }
 
         bool enter(Student& student){
+            //same as enter function for the classroom
             if(&student == NULL)
                 return false;
             if(this->size < this->capacity){
                 for(int i = 0; i < this->capacity; i++){
+                    if(this->students_corr[i] == &student){
+                        cout << "Already here" << endl;
+                        return true;
+                    }
                     if(this->students_corr[i] == NULL){
                         this->students_corr[i] = &student;
                         this->students_corr[i]->set(CORR);
                         break;
-                    }
-                    if(this->students_corr[i] == &student){
-                        cout << "Already here" << endl;
-                        return true;
                     }
                 }
                 this->size ++;                
@@ -263,20 +266,21 @@ class Corr{
                 return false;
         }
 
-        Student* exit(char* name){
-            Student* student;
+        bool exit(char* name){
+            //same as the exit function for the classroom
             for(int i = 0; i < this->capacity; i++){
                 if(this->students_corr[i] == NULL)
                     continue;
                 if(strcmp(name, this->students_corr[i]->get_name()) == 0){
-                    student = this->students_corr[i];
                     this->students_corr[i] = NULL;
                     this->size --;
-                    return student;
+                    return true;
                 }
+                else
+                    continue;
             }
             cout << "There is not such a student here" << endl;
-            return NULL;
+            return false;
         }
 };
 
@@ -302,7 +306,7 @@ class Floor{
         }
 
         ~Floor(){
-            // cout << "A floor is about to be destroyed" << endl;
+            cout << "A floor is about to be destroyed" << endl;
             delete this->class1;
             delete this->class2;
             delete this->class3;
@@ -339,45 +343,51 @@ class Floor{
         }
 
         bool enter(Student& student, int id = CORR){
+            //put the student at the fllor, by default put it at the corr, else put it at its classroom
             bool flag = false;
             if(id == 0)
                 flag = this->corr_of_the_floor->enter(student);
-            else if(id ==1)
-                flag = this->class1->enter(student);
-            else if(id == 2)
-                flag = this->class2->enter(student);
-            else if(id == 3)
-                flag = this->class3->enter(student);
-            else if(id == 4)
-                flag = this->class4->enter(student);
-            else if(id == 5)
-                flag = this->class5->enter(student);
-            else if(id == 6)
-                flag = this->class6->enter(student);
+            else{
+                id = student.getClass_id();
+                if(id == 1)
+                    flag = this->class1->enter(student);
+                else if(id == 2)
+                    flag = this->class2->enter(student);
+                else if(id == 3)
+                    flag = this->class3->enter(student);
+                else if(id == 4)
+                    flag = this->class4->enter(student);
+                else if(id == 5)
+                    flag = this->class5->enter(student);
+                else if(id == 6)
+                    flag = this->class6->enter(student);
+            }
             return flag;
         }
 
-        Student* exit(int id, char* name){
-            Student* student = NULL;
+        bool exit(int id, char* name){
+            //exit student from corridor or classroom
+            bool flag = false;
             if(id == 0)
-                student = this->corr_of_the_floor->exit(name);
+                flag = this->corr_of_the_floor->exit(name);
             else if(id ==1)
-                 student = this->class1->exit(name);
+                flag = this->class1->exit(name);
             else if(id == 2)
-                student = this->class2->exit(name);
+                flag = this->class2->exit(name);
             else if(id == 3)
-                student = this->class3->exit(name);
+                flag = this->class3->exit(name);
             else if(id == 4)
-                student = this->class4->exit(name);
+                flag = this->class4->exit(name);
             else if(id == 5)
-                student = this->class5->exit(name);
+                flag = this->class5->exit(name);
             else if(id == 6)
-                student = this->class6->exit(name);
+                flag = this->class6->exit(name);
 
-            return student;
+            return flag;
         }
 
         void place(int classroom){
+            //place teacher
             if(classroom == 1)
                 this->class1->place();
             else if(classroom == 2)
@@ -410,7 +420,7 @@ class Stair{
         }
 
         ~Stair(){
-            // cout << "Stairs is about to be destroyed" << endl;
+            cout << "Stairs is about to be destroyed" << endl;
             for(int i = 0; i < this->capacity; i++){
                 if(this->students_stair[i] == NULL)
                     continue;
@@ -434,18 +444,19 @@ class Stair{
         }
 
         bool enter(Student& student){
+            //same as the other enter functions
             if(&student == NULL)
-                return false;;
+                return false;
             if(this->size < this->capacity){
                 for(int i = 0; i < this->capacity; i++){
+                    if(this->students_stair[i] == &student){
+                        cout << "Already here" << endl;
+                        return true;
+                    }
                     if(this->students_stair[i] == NULL){
                         this->students_stair[i] = &student;
                         this->students_stair[i]->set(STAIRS);
                         break;
-                    }
-                    if(this->students_stair[i] == &student){
-                        cout << "Already here" << endl;
-                        return true;
                     }
                 }
                 this->size ++; 
@@ -456,20 +467,21 @@ class Stair{
                 return false;
         }
 
-        Student* exit(char* name){
-            Student* student;
+        bool exit(char* name){
+            //same as the other exit functions
             for(int i = 0; i < this->capacity; i++){
                 if(this->students_stair[i] == NULL)
                     continue;
                 if(strcmp(name, this->students_stair[i]->get_name()) == 0){
-                    student = this->students_stair[i];
                     this->students_stair[i] = NULL;
                     this->size --;
-                    return student;
+                    return true;
                 }
+                else
+                    continue;
             }
             cout << "There is not such a student here" << endl;
-            return NULL;
+            return false;
         }
 };
 
@@ -491,7 +503,7 @@ class Yard{
         }
 
         ~Yard(){
-            // cout << "A yard is about to be destroyed" << endl;
+            cout << "A yard is about to be destroyed" << endl;
             for(int i = 0; i < this->capacity; i++){
                 if(this->students_yard[i] == NULL)
                     continue;
@@ -511,56 +523,56 @@ class Yard{
         }
 
         bool enter(Student& student){
+            //same as the other enter functions
             if(&student == NULL)
                 return false;
             if(this->size < this->capacity){
                 for(int i = 0; i < this->capacity; i++){
+                    if(this->students_yard[i] == &student){
+                        cout << "Already here" << endl;
+                        return true;
+                    }
                     if(this->students_yard[i] == NULL){
                         this->students_yard[i] = &student;
                         this->students_yard[i]->set(YARD);
                         break;
-                    }
-                    if(this->students_yard[i] == &student){
-                        cout << "Already here" << endl;
-                        return true;
                     }
                 }
                 this->size ++;                
                 return true;
             }
             else
-                cout << "There is no more space in this corr" << endl;
+                cout << "There is no more space in this yard" << endl;
                 return false;
         }
 
-        Student* exit(char* name){
-            Student* student;
+        bool exit(char* name){
+            //same as the other exit functions
             for(int i = 0; i < this->capacity; i++){
                 if(this->students_yard[i] == NULL)
                     continue;
                 if(strcmp(name, this->students_yard[i]->get_name()) == 0){
-                    student = this->students_yard[i];
                     this->students_yard[i] = NULL;
                     this->size --;
-                    return student;
+                    return true;
                 }
                 else
                     continue;
             }
             cout << "There is not such a student here" << endl;
-            return NULL;
+            return false;
         }
 };
 
 class School{
     private:
-        Stair *stairs;
-        Yard *yard;
-        Floor *floor1;
-        Floor *floor2;
-        Floor *floor3;
+        Stair* stairs;
+        Yard* yard;
+        Floor* floor1;
+        Floor* floor2;
+        Floor* floor3;
     public:
-        School(int class_capacity, int corr_capacity, int yard_capacity, int stairs_capacity){
+        School(int class_capacity = 0, int corr_capacity = 0, int yard_capacity = 0, int stairs_capacity = 0){
             cout << "A new School has been created!" << endl;
             this->stairs = new Stair(stairs_capacity);
             this->yard = new Yard(yard_capacity);
@@ -570,7 +582,7 @@ class School{
         }
 
         ~School(){
-            // cout << "A school is about to be destroyed" << endl;
+            cout << "A school is about to be destroyed" << endl;
             delete this->stairs;
             delete this->yard;
             delete this->floor1;           
@@ -590,16 +602,18 @@ class School{
 
           this->floor3->print();
         }
- 
+
         bool enter(Student* student, int dest = YARD){ 
             int current_pos = student->getPos_id();
             bool flag;
+            //take the goal destination if it's yard or stairs just enter the student there
             if(dest == 1){
                 flag = this->yard->enter(*student); 
             }
             else if(dest == 2){
                 flag = this->stairs->enter(*student);
             }
+            //if the destination is the floor or the corridor, get students floor number and put it at this floorl's corridor
             else if(dest == 3 || dest == 0){ //floor
                 int f_id = student->getFloor_id();
                 if(f_id == 1){
@@ -612,6 +626,7 @@ class School{
                     flag = this->floor3->enter(*student, CORR);
                 }
             }
+            //if the destination is the classroom do as in the corridor's case
             else if(dest == 4){
                 int f_id = student->getFloor_id();
                 int c_id = student->getClass_id();
@@ -625,11 +640,16 @@ class School{
                     flag = this->floor3->enter(*student, c_id);
                 }
             }
+            //if the enter is unsucesful put the student back at its currents position
             if(flag == false){
                 cout << "Error student returns back" << endl;
                 if(student->getPos_id() == -1){
                     cout << "There is no space at school for that student" << endl;
-                    return true;
+                    return false;
+                }
+               if(student->getPos_id() == YARD){
+                    cout << "Student is already at the yard" << endl;
+                    return false;
                 }
                 this->enter(student, student->getPos_id());
                 return false;
@@ -637,50 +657,46 @@ class School{
             return true;
         }
 
-        void exit(Student* stu){
+        bool exit(Student* stu){
+            bool flag = false;
             int id_exit = stu->getPos_id();
             char* name = stu->get_name();
+            //exit student from it's current position. If the position is yard or stairs just remove it from there
             if(id_exit == 1){
-                this->yard->exit(name);
+                flag = this->yard->exit(name);
             }
             else if(id_exit == 2){
-                this->stairs->exit(name);
+                flag = this->stairs->exit(name);
             }
+            //if current possition is floor or corridor remove it from the corriddor it belongs
             else if(id_exit == 3 || id_exit == 0){
                 int pos = stu->getPos_id();
                 int floor_id = stu->getFloor_id();
                 if(floor_id ==1){
-                    // int class_pos = stu->getClass_id();
-                    this->floor1->exit(pos, name);
-                    return;
+                    flag = this->floor1->exit(pos, name);
                 }
-                else if(floor_id ==2){
-                    // int class_pos = stu->getClass_id();
-                    this->floor2->exit(pos, name);
-                    return;
+                else if(floor_id == 2){
+                    flag = this->floor2->exit(pos, name);
                 }
                 else if(floor_id ==3){
-                    // int class_pos = stu->getClass_id();
-                    this->floor3->exit(pos, name);
-                    return;
+                    flag = this->floor3->exit(pos, name);
                 }
             }
+            //if position is classroom do it as the corridors
             else if(id_exit == 4){
                 int pos = stu->getPos_id();
                 int floor_id = stu->getFloor_id();
                 if(floor_id ==1){
-                    this->floor1->exit(0, name);
-                    return;
+                    flag = this->floor1->exit(0, name);
                 }
                 if(floor_id ==2){
-                    this->floor2->exit(0, name);
-                    return;
+                    flag = this->floor2->exit(0, name);
                 }
                 if(floor_id ==3){
-                    this->floor3->exit(0, name);
-                    return;
+                    flag = this->floor3->exit(0, name);
                 }
             }
+            return flag;
         }
         void place(Teacher* teacher){
             int floor = teacher->get_floor_id();
@@ -708,16 +724,18 @@ class School{
 
 int main(int argc, char* argv[]){
 
+    srand(time(NULL));
+
     int Cclass = atoi(argv[1]);
     int Cyard = atoi(argv[2]);
     int Cstair = atoi(argv[3]);
     int Ccorr = atoi(argv[4]);
     int N = Cyard;
-    if(N < Cclass)  
+    if(N > Cclass)  
         N = Cclass;
-    if(N < Cstair)
+    if(N > Cstair)
         N = Cstair;
-    if(N < Ccorr)
+    if(N > Ccorr)
         N = Ccorr;
 
     char* name;
@@ -734,7 +752,7 @@ int main(int argc, char* argv[]){
         strcpy(name, buffer);
         teachers[i] = new Teacher(name, classroom, floor);
         school->put_teacher(teachers[i]);
-        delete name;
+        delete[] name;
     }
 
     Student** students = new Student*[N];
@@ -743,51 +761,76 @@ int main(int argc, char* argv[]){
         name = new char[strlen(buffer) + 1];
         strcpy(name, buffer);
         students[i] = new Student(name, classroom, floor);
-        delete name;
+        delete[] name;
     }
 
     bool flag;
+    bool flag_exit;
 
     for(int i = 0; i < Cyard; i++){
-        flag = school->enter(students[i], YARD);
+        int temp = rand() % N;
+        flag = school->enter(students[temp], YARD);
         if(flag == false && Cyard > N)
-            break;
+            break;      
     }
 
     for(int i = 0; i < Cstair; i++){
-        school->exit(students[i]);
-        flag = school->enter(students[i], STAIRS);
+        int temp = rand() % N;
+        if(students[temp]->getPos_id() != YARD)
+            continue;
+        flag_exit = school->exit(students[temp]);
+        if(flag_exit == false)
+            continue;
+        flag = school->enter(students[temp], STAIRS);
         if(flag == false && Cstair > N)
             break;      
     }
 
-    for(int i = 0; i < Ccorr; i++){
-        school->exit(students[i]);
-        flag = school->enter(students[i], FLOOR);
+    for(int i = 0; i < Ccorr*3 ; i++){
+        int temp = rand() % N;
+        if(students[temp]->getPos_id() != STAIRS)
+            continue;
+        flag_exit = school->exit(students[temp]);
+        if(flag_exit == false)
+            continue;
+        flag = school->enter(students[temp], CORR);
         if(flag == false && Ccorr > N)
             break;      
     }
 
-    school->place(teachers[0]);
-    school->place(teachers[1]);
-    school->place(teachers[3]);
-    school->place(teachers[5]);
-    school->place(teachers[7]);
+    int flag_teachers = rand() % 2; //bool to place teachers or not
+    if(flag_teachers == 1){
+        int temp = rand() % 18;
+        temp++;
+        for(int i = 0; i < temp ; i++){
+            int pos = rand() % 18;
+            school->place(teachers[pos]);
+        }
+    }
 
-
-    for(int i = 0; i < Cclass; i++){
-        school->exit(students[i]);
-        flag = school->enter(students[i], CLASS);
-        // cout << flag << endl;
+    for(int i = 0; i < Cclass*18; i++){
+        int temp = rand() % N;
+        if(students[temp]->getPos_id() != CORR)
+            continue;
+        flag_exit = school->exit(students[temp]);
+        if(flag_exit == false)
+            continue;
+        flag = school->enter(students[temp], CLASS);
         if(flag == false && Cclass > N)
             break;       
     }
 
     school->print();
 
+    for(int i = 0; i < N; i++){
+        if(students[i]->getPos_id() == OUT_OF_SCHOOL)
+            delete students[i];
+    }
+
     delete school;
+
     delete[] teachers;
     delete[] students;
- 
+
     return 0;
 }
